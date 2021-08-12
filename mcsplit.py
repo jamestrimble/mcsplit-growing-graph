@@ -44,23 +44,21 @@ class LabelClass(object):
     """A label class, used by the McSplit algorithm.
 
     A label class contains a list of nodes from graph G and a list of nodes
-    from graph H to which these may be mapped.  The `is_adjacent` member is
-    a boolean which is true if and only if the nodes in the label class are
-    adjacent to at least one node of the current subgraph.
+    from graph H to which these may be mapped.
     """
 
-    def __init__(self, is_adjacent, G_nodes, H_nodes):
+    def __init__(self, G_nodes, H_nodes):
         self.G_nodes = G_nodes
         self.H_nodes = H_nodes
-        self.is_adjacent = is_adjacent
 
 
 class PartitioningMCISFinder(object):
     """A class implementing the McSplit algorithm"""
 
-    def __init__(self, G, H):
+    def __init__(self, G, H, prev_results):
         self.G = G
         self.H = H
+        self.prev_results = prev_results
         self.list_of_mcs = []
 
     def refine_label_classes(self, label_classes, v, w):
@@ -74,13 +72,11 @@ class PartitioningMCISFinder(object):
             new_lc_0_H_nodes = [u for u in H_nodes if not H_adj_row_w[u]]
             if new_lc_0_G_nodes and new_lc_0_H_nodes:
                 new_label_classes.append(LabelClass(
-                    lc.is_adjacent,
                     new_lc_0_G_nodes,
                     new_lc_0_H_nodes
                 ))
             if len(new_lc_0_G_nodes) < len(G_nodes) and len(new_lc_0_H_nodes) < len(H_nodes):
                 new_label_classes.append(LabelClass(
-                    True,
                     [u for u in G_nodes if G_adj_row_v[u]],
                     [u for u in H_nodes if H_adj_row_w[u]]
                 ))
@@ -118,23 +114,35 @@ class PartitioningMCISFinder(object):
 
     def find_common_subgraph(self, target):
         """Find a common subgraph with at least `target` nodes using McSplit"""
-        label_class = LabelClass(False, sorted(self.G.nodes()), sorted(self.H.nodes()))
-        self.search([label_class], {}, target)
+        n = self.G.number_of_nodes()
+        max_v = n - 1
+        for w in range(n):
+            vv = [u for u in sorted(self.G.nodes()) if u != max_v]
+            ww = [u for u in sorted(self.H.nodes()) if u != w]
+            new_label_classes = self.refine_label_classes([LabelClass(vv, ww)], max_v, w)
+            self.search(new_label_classes, {max_v : w}, target)
+        for v in range(max_v):
+            vv = [u for u in sorted(self.G.nodes()) if u != v and u != max_v]
+            ww = [u for u in sorted(self.H.nodes()) if u != max_v]
+            new_label_classes = self.refine_label_classes([LabelClass(vv, ww)], v, max_v)
+            self.search(new_label_classes, {v : max_v}, target)
         if self.list_of_mcs:
             return [set(mcs.items()) for mcs in self.list_of_mcs]
         else:
             return None
 
 
-def max_common_induced_subgraph(G, H):
+def max_common_induced_subgraph(G, H, prev_results):
     """
     Find a maximum common induced subgraph
     """
-    min_n = min(G.number_of_nodes(), H.number_of_nodes())
-    for target in range(min_n, -1, -1):
-        search_result = PartitioningMCISFinder(G, H).find_common_subgraph(target)
-        if search_result is not None:
-            return search_result
+    prev_best_size = len(prev_results[0])
+    target = prev_best_size + 1
+    search_result = PartitioningMCISFinder(G, H, prev_results).find_common_subgraph(target)
+    if search_result is not None:
+        return search_result
+    target = prev_best_size
+    return prev_results + PartitioningMCISFinder(G, H, prev_results).find_common_subgraph(target)
 
 
 if __name__ == "__main__":
@@ -147,6 +155,7 @@ if __name__ == "__main__":
 
     G = Graph()
     H = Graph()
+    result = [[]]
     for v in range(max_n):
         G.add_node()
         H.add_node()
@@ -155,7 +164,7 @@ if __name__ == "__main__":
                 G.add_edge(v, w)
             if random.random() < 0.5:
                 H.add_edge(v, w)
-        result = max_common_induced_subgraph(G, H)
+        result = max_common_induced_subgraph(G, H, result)
         G_vtx_counts = [0] * (v + 1)
         H_vtx_counts = [0] * (v + 1)
         G_densities = []
