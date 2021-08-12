@@ -58,10 +58,9 @@ class LabelClass(object):
 class PartitioningMCISFinder(object):
     """A class implementing the McSplit algorithm"""
 
-    def __init__(self, G, H, connected):
+    def __init__(self, G, H):
         self.G = G
         self.H = H
-        self.connected = connected
         self.list_of_mcs = []
 
     def refine_label_classes(self, label_classes, v, w):
@@ -88,13 +87,9 @@ class PartitioningMCISFinder(object):
         return new_label_classes
 
     def select_label_class(self, label_classes, assignment_count):
-        if self.connected and assignment_count > 0:
-            candidates = [lc for lc in label_classes if lc.is_adjacent]
-        else:
-            candidates = label_classes
-        if not candidates:
+        if not label_classes:
             return None
-        return min(candidates, key=lambda lc: max(len(lc.G_nodes), len(lc.H_nodes)))
+        return min(label_classes, key=lambda lc: max(len(lc.G_nodes), len(lc.H_nodes)))
 
     def calculate_bound(self, label_classes):
         return sum(min(len(lc.G_nodes), len(lc.H_nodes)) for lc in label_classes)
@@ -131,13 +126,13 @@ class PartitioningMCISFinder(object):
             return None
 
 
-def max_common_induced_subgraph(G, H, connected=False):
+def max_common_induced_subgraph(G, H):
     """
     Find a maximum common induced subgraph
     """
     min_n = min(G.number_of_nodes(), H.number_of_nodes())
     for target in range(min_n, -1, -1):
-        search_result = PartitioningMCISFinder(G, H, connected).find_common_subgraph(target)
+        search_result = PartitioningMCISFinder(G, H).find_common_subgraph(target)
         if search_result is not None:
             return search_result
 
