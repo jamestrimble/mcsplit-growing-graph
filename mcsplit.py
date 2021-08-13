@@ -175,7 +175,21 @@ if __name__ == "__main__":
             for t, u in m:
                 G_vtx_counts[t] += 1
                 H_vtx_counts[u] += 1
-        print("{:5} {:5} {:5} {} {} [{}]".format(v + 1, len(result[0]), len(result),
+        sys.stderr.write("Working on n={}...\n".format(v+1))
+        print("SUMMARY {},{},{}".format(v + 1, len(result[0]), len(result)))
+
+        print("A {},{},{},{}".format(v + 1, -1, "G", len(result)))
+        print("A {},{},{},{}".format(v + 1, -1, "H", len(result)))
+        for u in range(v + 1):
+            print("A {},{},{},{}".format(v + 1, u, "G", G_vtx_counts[u]))
+            print("A {},{},{},{}".format(v + 1, u, "H", H_vtx_counts[u]))
+        for i, m in enumerate(result):
+            real_density = G.induced_subgraph([t for t, u in m]).density()
+            fake_density = G.induced_subgraph(random.sample(G.nodes(), len(m))).density()
+            print("B {},{},{},{}".format(v + 1, i, real_density, "real"))
+            print("B {},{},{},{}".format(v + 1, i, fake_density, "fake"))
+
+        print("* {:5} {:5} {:5} {} {} [{}]".format(v + 1, len(result[0]), len(result),
                 G_vtx_counts, H_vtx_counts,
                 " ".join("{:.2f}".format(d) for d in sorted(G_densities))))
 
