@@ -55,10 +55,9 @@ class LabelClass(object):
 class PartitioningMCISFinder(object):
     """A class implementing the McSplit algorithm"""
 
-    def __init__(self, G, H, prev_results):
+    def __init__(self, G, H):
         self.G = G
         self.H = H
-        self.prev_results = prev_results
         self.list_of_mcs = []
 
     def refine_label_classes(self, label_classes, v, w):
@@ -114,18 +113,7 @@ class PartitioningMCISFinder(object):
 
     def find_common_subgraph(self, target):
         """Find a common subgraph with at least `target` nodes using McSplit"""
-        n = self.G.number_of_nodes()
-        max_v = n - 1
-        for w in range(n):
-            vv = [u for u in sorted(self.G.nodes()) if u != max_v]
-            ww = [u for u in sorted(self.H.nodes()) if u != w]
-            new_label_classes = self.refine_label_classes([LabelClass(vv, ww)], max_v, w)
-            self.search(new_label_classes, {max_v : w}, target)
-        for v in range(max_v):
-            vv = [u for u in sorted(self.G.nodes()) if u != v and u != max_v]
-            ww = [u for u in sorted(self.H.nodes()) if u != max_v]
-            new_label_classes = self.refine_label_classes([LabelClass(vv, ww)], v, max_v)
-            self.search(new_label_classes, {v : max_v}, target)
+        self.search([LabelClass(sorted(self.G.nodes()), sorted(self.H.nodes()))], {}, target)
         if self.list_of_mcs:
             return [set(mcs.items()) for mcs in self.list_of_mcs]
         else:
@@ -138,11 +126,11 @@ def max_common_induced_subgraph(G, H, prev_results):
     """
     prev_best_size = len(prev_results[0])
     target = prev_best_size + 1
-    search_result = PartitioningMCISFinder(G, H, prev_results).find_common_subgraph(target)
+    search_result = PartitioningMCISFinder(G, H).find_common_subgraph(target)
     if search_result is not None:
         return search_result
     target = prev_best_size
-    return prev_results + PartitioningMCISFinder(G, H, prev_results).find_common_subgraph(target)
+    return prev_results + PartitioningMCISFinder(G, H).find_common_subgraph(target)
 
 
 if __name__ == "__main__":
