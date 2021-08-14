@@ -18,7 +18,20 @@ x <- function(N) {
 }
 summary$x <- x(summary$n)
 
-summary <- summary[, c("n", "k", "x", "count")]
+x_new <- function(N) {
+    4 * log2(N) - 2 * log2(log2(N)) - 2 * log2(4/exp(1))
+}
+summary$x_new <- x_new(summary$n)
+
+x_unrounded <- function(N) {
+    a <- 4/log(2)
+    b <- -2/log(2)
+    c <- 1/2 * a * (1-log(a))
+    a * log(N) + b * log(log(N)) + c
+}
+summary$x_unrounded <- x_unrounded(summary$n)
+
+summary <- summary[, c("n", "k", "x", "x_unrounded", "count")]
 ```
 
 This hastily-written note gives some results from an MCIS experiment with a sample size of one.  

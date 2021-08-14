@@ -146,12 +146,12 @@ def max_common_induced_subgraph(G, H, prev_results):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python3 {} MAX_N".format(sys.argv[0]))
+    if len(sys.argv) != 3:
+        print("Usage: python3 {} MAX_N SEED".format(sys.argv[0]))
         exit(1)
     max_n = int(sys.argv[1])
 
-    random.seed(1)
+    random.seed(int(sys.argv[2]))
 
     G = Graph()
     H = Graph()
