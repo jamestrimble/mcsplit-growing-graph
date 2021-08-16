@@ -133,24 +133,42 @@ def max_common_induced_subgraph(G, H, prev_best_size):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
+    using_input_file = False
+    if not sys.argv[2].isnumeric():
+        using_input_file = True
+    elif len(sys.argv) != 3:
         print("Usage: python3 {} MAX_N SEED".format(sys.argv[0]))
         exit(1)
-    max_n = int(sys.argv[1])
-
-    random.seed(int(sys.argv[2]))
 
     G = Graph()
     H = Graph()
+    if using_input_file:
+        file_G = Graph()
+        file_H = Graph()
+        with open(sys.argv[2], "r") as f:
+            lines = [[int(tok) for tok in line.strip().split()] for line in f.readlines()]
+            n = lines[0][0]
+            file_G._adj_mat = lines[1:n+1]
+            file_H._adj_mat = lines[n+1:]
+    else:
+        random.seed(int(sys.argv[2]))
+
+    max_n = int(sys.argv[1])
+
     result = [[]]
     for v in range(max_n):
         G.add_node()
         H.add_node()
-        for w in range(v):
-            if random.random() < 0.5:
-                G.add_edge(v, w)
-            if random.random() < 0.5:
-                H.add_edge(v, w)
+        if using_input_file:
+            n = G.number_of_nodes()
+            G._adj_mat = [row[:n] for row in file_G._adj_mat[:n]]
+            H._adj_mat = [row[:n] for row in file_H._adj_mat[:n]]
+        else:
+            for w in range(v):
+                if random.random() < 0.5:
+                    G.add_edge(v, w)
+                if random.random() < 0.5:
+                    H.add_edge(v, w)
         sys.stderr.write("Working on n={}...\n".format(v+1))
         result = max_common_induced_subgraph(G, H, len(result[0]))
         G_vtx_counts = [0] * (v + 1)
