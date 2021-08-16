@@ -120,17 +120,16 @@ class PartitioningMCISFinder(object):
             return None
 
 
-def max_common_induced_subgraph(G, H, prev_results):
+def max_common_induced_subgraph(G, H, prev_best_size):
     """
     Find a maximum common induced subgraph
     """
-    prev_best_size = len(prev_results[0])
     target = prev_best_size + 1
     search_result = PartitioningMCISFinder(G, H).find_common_subgraph(target)
     if search_result is not None:
         return search_result
     target = prev_best_size
-    return prev_results + PartitioningMCISFinder(G, H).find_common_subgraph(target)
+    return PartitioningMCISFinder(G, H).find_common_subgraph(target)
 
 
 if __name__ == "__main__":
@@ -152,7 +151,8 @@ if __name__ == "__main__":
                 G.add_edge(v, w)
             if random.random() < 0.5:
                 H.add_edge(v, w)
-        result = max_common_induced_subgraph(G, H, result)
+        sys.stderr.write("Working on n={}...\n".format(v+1))
+        result = max_common_induced_subgraph(G, H, len(result[0]))
         G_vtx_counts = [0] * (v + 1)
         H_vtx_counts = [0] * (v + 1)
         G_densities = []
@@ -163,7 +163,6 @@ if __name__ == "__main__":
             for t, u in m:
                 G_vtx_counts[t] += 1
                 H_vtx_counts[u] += 1
-        sys.stderr.write("Working on n={}...\n".format(v+1))
         print("SUMMARY {},{},{}".format(v + 1, len(result[0]), len(result)))
 
         print("A {},{},{},{}".format(v + 1, -1, "G", len(result)))
