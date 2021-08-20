@@ -120,59 +120,58 @@ class PartitioningMCISFinder(object):
             return None
 
 
-def max_common_induced_subgraph(G, H, prev_best_size):
+def max_common_induced_subgraph(G, H):
     """
     Find a maximum common induced subgraph
     """
-    target = prev_best_size + 1
-    search_result = PartitioningMCISFinder(G, H).find_common_subgraph(target)
-    if search_result is not None:
-        return search_result
-    target = prev_best_size
-    return PartitioningMCISFinder(G, H).find_common_subgraph(target)
+    target = G.number_of_nodes()
+    while True:
+        search_result = PartitioningMCISFinder(G, H).find_common_subgraph(target)
+        if search_result is not None:
+            return search_result
+        target = target - 1
 
 
 if __name__ == "__main__":
-    using_input_file = False
-    if not sys.argv[2].isnumeric():
-        using_input_file = True
-    elif len(sys.argv) != 3:
+    if len(sys.argv) != 3:
         print("Usage: python3 {} MAX_N SEED".format(sys.argv[0]))
         exit(1)
 
-    G = Graph()
-    H = Graph()
-    if using_input_file:
-        file_G = Graph()
-        file_H = Graph()
+    max_n = int(sys.argv[1])
+
+    if not sys.argv[2].isnumeric():
+        full_G = Graph()
+        full_H = Graph()
         with open(sys.argv[2], "r") as f:
             lines = [[int(tok) for tok in line.strip().split()] for line in f.readlines()]
             n = lines[0][0]
-            file_G._adj_mat = lines[1:n+1]
-            file_H._adj_mat = lines[n+1:]
+            full_G._adj_mat = lines[1:n+1]
+            full_H._adj_mat = lines[n+1:]
     else:
         random.seed(int(sys.argv[2]))
-
-    max_n = int(sys.argv[1])
+        full_G = Graph(max_n)
+        full_H = Graph(max_n)
+        for v in range(max_n):
+            for w in range(v):
+                if random.random() < 0.5:
+                    full_G.add_edge(v, w)
+                if random.random() < 0.5:
+                    full_H.add_edge(v, w)
+        for v in range(max_n):
+            print([int(x) for x in full_G._adj_mat[v]])
+        print()
+        for v in range(max_n):
+            print([int(x) for x in full_H._adj_mat[v]])
 
     result = [[]]
     for v in range(max_n):
-        G.add_node()
-        H.add_node()
-        if using_input_file:
-            n = G.number_of_nodes()
-            G._adj_mat = [row[:n] for row in file_G._adj_mat[:n]]
-            H._adj_mat = [row[:n] for row in file_H._adj_mat[:n]]
-        else:
-            for w in range(v):
-                if random.random() < 0.5:
-                    G.add_edge(v, w)
-                if random.random() < 0.5:
-                    H.add_edge(v, w)
-        sys.stderr.write("Working on n={}...\n".format(v+1))
-        result = max_common_induced_subgraph(G, H, len(result[0]))
-        G_vtx_counts = [0] * (v + 1)
-        H_vtx_counts = [0] * (v + 1)
+        n = v + 1
+        G = full_G.induced_subgraph(list(range(n)))
+        H = full_H.induced_subgraph(list(range(n)))
+        sys.stderr.write("Working on n={}...\n".format(n))
+        result = max_common_induced_subgraph(G, H)
+        G_vtx_counts = [0] * n
+        H_vtx_counts = [0] * n
         G_densities = []
         H_densities = []
         for m in result:
@@ -181,20 +180,20 @@ if __name__ == "__main__":
             for t, u in m:
                 G_vtx_counts[t] += 1
                 H_vtx_counts[u] += 1
-        print("SUMMARY {},{},{}".format(v + 1, len(result[0]), len(result)))
+        print("SUMMARY {},{},{}".format(n, len(result[0]), len(result)))
 
-        print("A {},{},{},{}".format(v + 1, -1, "G", len(result)))
-        print("A {},{},{},{}".format(v + 1, -1, "H", len(result)))
-        for u in range(v + 1):
-            print("A {},{},{},{}".format(v + 1, u, "G", G_vtx_counts[u]))
-            print("A {},{},{},{}".format(v + 1, u, "H", H_vtx_counts[u]))
+        print("A {},{},{},{}".format(n, -1, "G", len(result)))
+        print("A {},{},{},{}".format(n, -1, "H", len(result)))
+        for u in range(n):
+            print("A {},{},{},{}".format(n, u, "G", G_vtx_counts[u]))
+            print("A {},{},{},{}".format(n, u, "H", H_vtx_counts[u]))
         for i, m in enumerate(result):
             real_density = G.induced_subgraph([t for t, u in m]).density()
             fake_density = G.induced_subgraph(random.sample(G.nodes(), len(m))).density()
-            print("B {},{},{},{}".format(v + 1, i, real_density, "real"))
-            print("B {},{},{},{}".format(v + 1, i, fake_density, "fake"))
+            print("B {},{},{},{}".format(n, i, real_density, "real"))
+            print("B {},{},{},{}".format(n, i, fake_density, "fake"))
 
-        print("* {:5} {:5} {:5} {} {} [{}]".format(v + 1, len(result[0]), len(result),
+        print("* {:5} {:5} {:5} {} {} [{}]".format(n, len(result[0]), len(result),
                 G_vtx_counts, H_vtx_counts,
                 " ".join("{:.2f}".format(d) for d in sorted(G_densities))))
 
