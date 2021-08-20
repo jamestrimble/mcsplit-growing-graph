@@ -65,8 +65,8 @@ class PartitioningMCISFinder(object):
         for lc in label_classes:
             G_nodes = lc.G_nodes
             H_nodes = lc.H_nodes
-            G_adj_row_v = G.adj_row(v)
-            H_adj_row_w = H.adj_row(w)
+            G_adj_row_v = self.G.adj_row(v)
+            H_adj_row_w = self.H.adj_row(w)
             new_lc_0_G_nodes = [u for u in G_nodes if not G_adj_row_v[u]]
             new_lc_0_H_nodes = [u for u in H_nodes if not H_adj_row_w[u]]
             if new_lc_0_G_nodes and new_lc_0_H_nodes:
