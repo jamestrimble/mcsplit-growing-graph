@@ -1,0 +1,7 @@
+Incumbent size: 1
+Incumbent size: 2
+Incumbent size: 3
+Solution size 3
+(0 -> 1) (1 -> 2) (2 -> 0) 
+Nodes:                      15
+CPU time (ms):              0
