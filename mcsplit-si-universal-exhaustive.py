@@ -1,8 +1,6 @@
 import random
 import sys
 
-import networkx as nx
-
 tmp_counter = [0]
 
 class Graph(object):
@@ -143,14 +141,60 @@ def induced_subgraph_isomorphism(G, H):
     return PartitioningMCISFinder(G, H).find_common_subgraph(target) is not None
 
 
+
+# The following function is more-or-less copied from NetworkX
+def from_graph6_bytes(bytes_in):
+    def bits():
+        """Returns sequence of individual bits from 6-bit-per-value
+        list of data values."""
+        for d in data:
+            for i in [5, 4, 3, 2, 1, 0]:
+                yield (d >> i) & 1
+
+    def data_to_n(data):
+        """Read initial one-, four- or eight-unit value from graph6
+        integer sequence.
+        Return (value, rest of seq.)"""
+        if data[0] <= 62:
+            return data[0], data[1:]
+        if data[1] <= 62:
+            return (data[1] << 12) + (data[2] << 6) + data[3], data[4:]
+        return (
+            (data[2] << 30)
+            + (data[3] << 24)
+            + (data[4] << 18)
+            + (data[5] << 12)
+            + (data[6] << 6)
+            + data[7],
+            data[8:],
+        )
+
+    if bytes_in.startswith(b">>graph6<<"):
+        bytes_in = bytes_in[10:]
+
+    data = [c - 63 for c in bytes_in]
+    if any(c > 63 for c in data):
+        raise ValueError("each input character must be in range(63, 127)")
+
+    n, data = data_to_n(data)
+    nd = (n * (n - 1) // 2 + 5) // 6
+    if len(data) != nd:
+        raise NetworkXError(
+            f"Expected {n * (n - 1) // 2} bits but got {len(data) * 6} in graph6"
+        )
+
+    G = Graph(n)
+    for (i, j), b in zip([(i, j) for j in range(1, n) for i in range(j)], bits()):
+        if b:
+            G.add_edge(i, j)
+
+    return G
+
+
 def read_all_graphs(n):
     with open("mckay-data/graph{}.g6".format(n), "rb") as f:
         for line in f:
-            g = Graph(n)
-            G = nx.from_graph6_bytes(line.strip())
-            for v, w in G.edges():
-                g.add_edge(v, w)
-            yield g
+            yield from_graph6_bytes(line.strip())
 
     
 if __name__ == "__main__":
@@ -163,15 +207,10 @@ if __name__ == "__main__":
 
     patterns = {}
     for i in range(1, 7):
-        patterns[i] = []
-        all_graphs = nx.read_graph6("mckay-data/graph{}.g6".format(i))
+        all_graphs = [G for G in read_all_graphs(i)]
         if not isinstance(all_graphs, list):
             all_graphs = [all_graphs]
-        for G in all_graphs:
-            g = Graph(i)
-            for v, w in G.edges():
-                g.add_edge(v, w)
-            patterns[i].append(g)
+        patterns[i] = all_graphs
         patterns[i].sort(key=lambda G: -abs(sum(sum(row) for row in G._adj_mat) - G.number_of_nodes() * (G.number_of_nodes() - 1) / 2))
 #            break
 
