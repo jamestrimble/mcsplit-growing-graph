@@ -1,8 +1,6 @@
 import random
 import sys
 
-tmp_counter = [0]
-
 class Graph(object):
     def __init__(self, node_count = 0):
         self._adj_mat = [[0] * node_count for _ in range(node_count)]
@@ -44,15 +42,6 @@ class Graph(object):
         return float(sum(sum(row) for row in self._adj_mat)) / (n * (n - 1))
 
 
-def random_graph(n):
-    G = Graph(n)
-    for v in range(n):
-        for w in range(v):
-            if random.random() < 0.5:
-                G.add_edge(v, w)
-    return G
-
-
 class LabelClass(object):
     """A label class, used by the McSplit algorithm.
 
@@ -65,9 +54,7 @@ class LabelClass(object):
         self.H_nodes = H_nodes
 
 
-class PartitioningMCISFinder(object):
-    """A class implementing the McSplit algorithm"""
-
+class PartitioningSIFinder(object):
     def __init__(self, G, H):
         self.G = G
         self.H = H
@@ -82,12 +69,18 @@ class PartitioningMCISFinder(object):
             H_adj_row_w = self.H.adj_row(w)
             new_lc_0_G_nodes = [u for u in G_nodes if not G_adj_row_v[u]]
             new_lc_0_H_nodes = [u for u in H_nodes if not H_adj_row_w[u]]
-            if new_lc_0_G_nodes and new_lc_0_H_nodes:
+            if len(new_lc_0_G_nodes) > len(new_lc_0_H_nodes):
+                return None
+            if new_lc_0_G_nodes:
                 new_label_classes.append(LabelClass(
                     new_lc_0_G_nodes,
                     new_lc_0_H_nodes
                 ))
-            if len(new_lc_0_G_nodes) < len(G_nodes) and len(new_lc_0_H_nodes) < len(H_nodes):
+            if len(new_lc_0_G_nodes) < len(G_nodes):
+                len_G = len(G_nodes) - len(new_lc_0_G_nodes)
+                len_H = len(H_nodes) - len(new_lc_0_H_nodes)
+                if len_G > len_H:
+                    return None
                 new_label_classes.append(LabelClass(
                     [u for u in G_nodes if G_adj_row_v[u]],
                     [u for u in H_nodes if H_adj_row_w[u]]
@@ -99,15 +92,11 @@ class PartitioningMCISFinder(object):
             return None
         return min(label_classes, key=lambda lc: max(len(lc.G_nodes), len(lc.H_nodes)))
 
-    def calculate_bound(self, label_classes):
-        return sum(min(len(lc.G_nodes), len(lc.H_nodes)) for lc in label_classes)
-
-    def search(self, label_classes, assignments, target):
-        tmp_counter[0] += 1
-        if len(assignments) == target:
-            self.list_of_mcs.append(dict(assignments))
+    def search(self, label_classes, assignments):
+        if len(self.list_of_mcs):
             return
-        if len(assignments) + self.calculate_bound(label_classes) < target:
+        if len(assignments) == self.G.number_of_nodes():
+            self.list_of_mcs.append(dict(assignments))
             return
         label_class = self.select_label_class(label_classes, len(assignments))
         if label_class is None:
@@ -118,15 +107,13 @@ class PartitioningMCISFinder(object):
             label_class.H_nodes[:] = [u for u in H_nodes if u != w]
             assignments[v] = w
             new_label_classes = self.refine_label_classes(label_classes, v, w)
-            self.search(new_label_classes, assignments, target)
+            if new_label_classes is not None:
+                self.search(new_label_classes, assignments)
             del assignments[v]
         label_class.H_nodes[:] = H_nodes
-        new_label_classes = [lc for lc in label_classes if lc.G_nodes]
-        self.search(new_label_classes, assignments, target)
 
-    def find_common_subgraph(self, target):
-        """Find a common subgraph with at least `target` nodes using McSplit"""
-        self.search([LabelClass(sorted(self.G.nodes()), sorted(self.H.nodes()))], {}, target)
+    def find_si(self):
+        self.search([LabelClass(sorted(self.G.nodes()), sorted(self.H.nodes()))], {})
         if self.list_of_mcs:
             return [set(mcs.items()) for mcs in self.list_of_mcs]
         else:
@@ -134,11 +121,7 @@ class PartitioningMCISFinder(object):
 
 
 def induced_subgraph_isomorphism(G, H):
-    """
-    Find a maximum common induced subgraph
-    """
-    target = G.number_of_nodes()
-    return PartitioningMCISFinder(G, H).find_common_subgraph(target) is not None
+    return PartitioningSIFinder(G, H).find_si() is not None
 
 
 
