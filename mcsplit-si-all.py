@@ -102,6 +102,8 @@ class PartitioningMCISFinder(object):
 
     def search(self, label_classes, assignments, target):
         tmp_counter[0] += 1
+        if self.list_of_mcs:
+            return
         if len(assignments) == target:
             self.list_of_mcs.append(dict(assignments))
             return
