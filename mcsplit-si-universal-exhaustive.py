@@ -55,9 +55,10 @@ class LabelClass(object):
 
 
 class PartitioningSIFinder(object):
-    def __init__(self, G, H):
+    def __init__(self, G, H, find_all):
         self.G = G
         self.H = H
+        self.find_all = find_all
         self.list_of_mcs = []
 
     def refine_label_classes(self, label_classes, v, w):
@@ -93,7 +94,7 @@ class PartitioningSIFinder(object):
         return min(label_classes, key=lambda lc: max(len(lc.G_nodes), len(lc.H_nodes)))
 
     def search(self, label_classes, assignments):
-        if len(self.list_of_mcs):
+        if len(self.list_of_mcs) and not self.find_all:
             return
         if len(assignments) == self.G.number_of_nodes():
             self.list_of_mcs.append(dict(assignments))
@@ -114,14 +115,11 @@ class PartitioningSIFinder(object):
 
     def find_si(self):
         self.search([LabelClass(sorted(self.G.nodes()), sorted(self.H.nodes()))], {})
-        if self.list_of_mcs:
-            return [set(mcs.items()) for mcs in self.list_of_mcs]
-        else:
-            return None
+        return self.list_of_mcs
 
 
-def induced_subgraph_isomorphism(G, H):
-    return PartitioningSIFinder(G, H).find_si() is not None
+def induced_subgraph_isomorphism(G, H, find_all=False):
+    return PartitioningSIFinder(G, H, find_all).find_si()
 
 
 
@@ -194,7 +192,7 @@ if __name__ == "__main__":
         if not isinstance(all_graphs, list):
             all_graphs = [all_graphs]
         patterns[i] = all_graphs
-        patterns[i].sort(key=lambda G: -abs(sum(sum(row) for row in G._adj_mat) - G.number_of_nodes() * (G.number_of_nodes() - 1) / 2))
-#            break
+        patterns[i].sort(key=lambda G: -len(induced_subgraph_isomorphism(G, G, True)))
+        #patterns[i].sort(key=lambda G: -abs(sum(sum(row) for row in G._adj_mat) - G.number_of_nodes() * (G.number_of_nodes() - 1) / 2))
 
     print(sum(all(induced_subgraph_isomorphism(P, T) for P in patterns[nP]) for T in read_all_graphs(nT)))
