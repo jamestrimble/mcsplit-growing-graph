@@ -1,0 +1,136 @@
+Some quick induced subgraph isomorphism experiments
+===================================================
+
+1. Random pattern and target graphs
+-----------------------------------
+
+Suppose we generate a random pattern graph P from G(n_P, 1/2) and a random target
+graph T from G(n_T, 1/2).  What is the probability that P is isomorphic to an
+induced subgraph of T?  To investigate this, I generated 1000 graph pairs for
+each (n_P, n_T) pair such that 1 <= n_P <= 13 and 1 <= n_T <= 30.
+
+The following table shows, for each (n_P, n_T) pair, how many of the 1000
+pattern graphs were isomorphic to an induced subgraph of their corresponding
+target graph.  The table has a row for each target graph order n_T, and a column
+for each pattern graph order n_P.  For example, the number 998 in column 2 of
+row 5 tells us that in 998 out of 1000 iterations, a random graph with 2 vertices
+was isomorphic to an induced subgraph of a random graph with 5 vertices.
+
+Even with these small values of n_P and n_T, it looks like there is a transition
+from satisfiable to unsatisfiable around n_P = 2 log_2(n_T); this nicely matches
+the formula in Diaconis and Chatterjee's paper.  For example, looking at the
+last row (n_T=32), 944 out of 1000 instances were satisfiable with n_P = 2
+log_2(32), and only 117 out of 1000 were satisfiable with n_P = 2 log_2(32) + 1.
+
+             1     2     3     4     5     6     7     8     9     10   11   12   13
+1            1000  0     0     0     0     0     0     0     0     0    0    0    0
+2            1000  483   0     0     0     0     0     0     0     0    0    0    0
+3            1000  880   306   0     0     0     0     0     0     0    0    0    0
+4            1000  991   670   135   0     0     0     0     0     0    0    0    0
+5            1000  998   862   435   43    0     0     0     0     0    0    0    0
+6            1000  1000  949   695   197   14    0     0     0     0    0    0    0
+7            1000  1000  989   844   443   57    1     0     0     0    0    0    0
+8            1000  1000  996   934   668   204   13    0     0     0    0    0    0
+9            1000  1000  998   973   835   392   40    1     0     0    0    0    0
+10           1000  1000  1000  993   902   595   111   6     0     0    0    0    0
+11           1000  1000  1000  998   957   759   240   12    0     0    0    0    0
+12           1000  1000  1000  998   982   873   456   48    0     0    0    0    0
+13           1000  1000  1000  1000  991   921   622   94    1     0    0    0    0
+14           1000  1000  1000  999   996   963   784   190   8     0    0    0    0
+15           1000  1000  1000  1000  1000  989   887   341   16    0    0    0    0
+16           1000  1000  1000  1000  1000  995   939   538   37    1    0    0    0
+17           1000  1000  1000  1000  1000  998   975   681   73    3    0    0    0
+18           1000  1000  1000  1000  1000  999   991   826   142   4    0    0    0
+19           1000  1000  1000  1000  1000  999   991   911   243   10   0    0    0
+20           1000  1000  1000  1000  1000  998   994   966   371   15   0    0    0
+21           1000  1000  1000  1000  1000  999   998   976   500   19   0    0    0
+22           1000  1000  1000  1000  1000  1000  999   992   697   52   0    0    0
+23           1000  1000  1000  1000  1000  1000  998   991   820   83   3    0    0
+24           1000  1000  1000  1000  1000  1000  1000  997   892   138  4    0    0
+25           1000  1000  1000  1000  1000  1000  1000  998   942   210  5    0    0
+26           1000  1000  1000  1000  1000  1000  1000  999   973   293  5    0    0
+27           1000  1000  1000  1000  1000  1000  1000  999   987   434  13   0    0
+28           1000  1000  1000  1000  1000  1000  1000  1000  996   560  26   0    0
+29           1000  1000  1000  1000  1000  1000  1000  1000  999   700  26   0    0
+30           1000  1000  1000  1000  1000  1000  1000  1000  999   802  41   1    0
+31           1000  1000  1000  1000  1000  1000  1000  1000  1000  892  65   2    0
+32           1000  1000  1000  1000  1000  1000  1000  1000  999   944  117  4    0
+
+2. All pattern graphs, random target graph
+------------------------------------------
+
+Next, we generate a random target graph T with n_T vertices, and ask whether every
+possible pattern graph with n_P vertices is isomorphic to some induced subgraph of T.
+
+The following table shows the results, again with 1000 target graphs generated
+for each (n_P, n_T) pair.  For example, looking at row 3, we see that 756 of 1000
+generated G(3, 1/2) graphs contained both 2-vertex graphs (I_2 and K_2) as
+induced subgraphs.
+
+             1     2     3     4     5    6   7   8
+1            1000  0     0     0     0    0   0   0
+2            1000  0     0     0     0    0   0   0
+3            1000  756   0     0     0    0   0   0
+4            1000  978   0     0     0    0   0   0
+5            1000  999   232   0     0    0   0   0
+6            1000  1000  671   0     0    0   0   0
+7            1000  1000  867   0     0    0   0   0
+8            1000  1000  963   31    0    0   0   0
+9            1000  1000  994   237   0    0   0   0
+10           1000  1000  999   515   0    0   0   0
+11           1000  1000  1000  717   0    0   0   0
+12           1000  1000  1000  860   24   0   0   0
+13           1000  1000  1000  948   71   0   0   0
+14           1000  1000  1000  983   189  0   0   0
+15           1000  1000  1000  993   351  0   0   0
+16           1000  1000  1000  997   483  0   0   0
+17           1000  1000  1000  1000  630  2   0   0
+18           1000  1000  1000  1000  770  6   0   0
+19           1000  1000  1000  1000  861  28  0   0
+20           1000  1000  1000  1000  934  62  0   0
+
+3. Clique pattern graph, random target graph
+--------------------------------------------
+
+In the third experiment, I generated random target graphs on n_T vertices and
+tested whether each target graph contained a clique K_{n_P}.  The table below
+shows the results.  For example, (looking at row 5), 612 of 1000 random
+G(5, 1/2) graphs contained K_3.
+
+For a given target size (i.e. on a given row on the table), the pattern graph
+order where there is a transition from satisfiable to unsatisfiable seems to be
+roughly one vertex larger than in the previous experiment.
+
+             1     2     3     4     5     6    7    8   9   10   11   12   13
+1            1000  0     0     0     0     0    0    0   0   0    0    0    0
+2            1000  475   0     0     0     0    0    0   0   0    0    0    0
+3            1000  881   114   0     0     0    0    0   0   0    0    0    0
+4            1000  984   339   21    0     0    0    0   0   0    0    0    0
+5            1000  999   612   62    1     0    0    0   0   0    0    0    0
+6            1000  1000  843   152   4     0    0    0   0   0    0    0    0
+7            1000  1000  931   287   18    0    0    0   0   0    0    0    0
+8            1000  1000  982   455   40    1    0    0   0   0    0    0    0
+9            1000  1000  1000  616   74    2    0    0   0   0    0    0    0
+10           1000  1000  1000  785   124   8    0    0   0   0    0    0    0
+11           1000  1000  1000  864   207   10   1    0   0   0    0    0    0
+12           1000  1000  1000  926   287   27   0    0   0   0    0    0    0
+13           1000  1000  1000  976   380   35   1    0   0   0    0    0    0
+14           1000  1000  1000  992   507   63   1    0   0   0    0    0    0
+15           1000  1000  1000  997   625   66   3    0   0   0    0    0    0
+16           1000  1000  1000  999   747   127  3    1   0   0    0    0    0
+17           1000  1000  1000  1000  828   141  4    0   0   0    0    0    0
+18           1000  1000  1000  1000  879   216  9    0   0   0    0    0    0
+19           1000  1000  1000  1000  943   253  14   0   0   0    0    0    0
+20           1000  1000  1000  1000  963   307  26   0   0   0    0    0    0
+21           1000  1000  1000  1000  989   413  28   0   0   0    0    0    0
+22           1000  1000  1000  1000  990   516  47   2   0   0    0    0    0
+23           1000  1000  1000  1000  994   594  68   3   0   0    0    0    0
+24           1000  1000  1000  1000  1000  681  81   0   0   0    0    0    0
+25           1000  1000  1000  1000  1000  719  92   5   0   0    0    0    0
+26           1000  1000  1000  1000  1000  822  149  3   0   0    0    0    0
+27           1000  1000  1000  1000  1000  858  162  3   0   0    0    0    0
+28           1000  1000  1000  1000  1000  890  239  7   1   0    0    0    0
+29           1000  1000  1000  1000  1000  938  241  5   0   0    0    0    0
+30           1000  1000  1000  1000  1000  961  291  17  0   0    0    0    0
+31           1000  1000  1000  1000  1000  976  357  18  0   0    0    0    0
+32           1000  1000  1000  1000  1000  981  422  22  0   0    0    0    0
