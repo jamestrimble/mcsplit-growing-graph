@@ -164,12 +164,10 @@ if __name__ == "__main__":
 #    while nT <= max_n:
         success_counts = [0] * max_n
         for iter in range(iters):
-            T = random_graph(nT)
             for nP in range(1, nT + 1):
+                T = random_graph(nT)
                 if all(induced_subgraph_isomorphism(P, T) for P in patterns[nP]):
                     success_counts[nP - 1] += 1
-                else:
-                    break
             #print(nP, nT, success_count)
         print(nT, " ".join(str(x) for x in success_counts))
 #        nT *= 2
