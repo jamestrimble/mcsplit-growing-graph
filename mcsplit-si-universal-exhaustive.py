@@ -178,21 +178,34 @@ def read_all_graphs(n):
             yield from_graph6_bytes(line.strip())
 
     
+def read_all_trees(n):
+    with open("{}-data/tree{}.all.txt".format("extra" if n<4 else "mckay", n), "r") as f:
+        for line in f:
+            tokens = [int(tok) for tok in line.strip().split()]
+            edges = zip(tokens[::2], tokens[1::2])
+            G = Graph(n)
+            for v, w in edges:
+                G.add_edge(v, w)
+            yield G
+
+    
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python3 {} NP NT".format(sys.argv[0]))
+    if len(sys.argv) != 4:
+        print("Usage: python3 {} tree|graph NP NT".format(sys.argv[0]))
         exit(1)
 
-    nP = int(sys.argv[1])
-    nT = int(sys.argv[2])
+    graph_type = sys.argv[1]
+    nP = int(sys.argv[2])
+    nT = int(sys.argv[3])
 
-    patterns = {}
-    for i in range(1, 7):
-        all_graphs = [G for G in read_all_graphs(i)]
-        if not isinstance(all_graphs, list):
-            all_graphs = [all_graphs]
-        patterns[i] = all_graphs
-        patterns[i].sort(key=lambda G: -len(induced_subgraph_isomorphism(G, G, True)))
-        #patterns[i].sort(key=lambda G: -abs(sum(sum(row) for row in G._adj_mat) - G.number_of_nodes() * (G.number_of_nodes() - 1) / 2))
+    if graph_type == "tree":
+        patterns = [G for G in read_all_trees(nP)]
+    else:
+        patterns = [G for G in read_all_graphs(nP)]
+        if not isinstance(patterns, list):
+            patterns = [patterns]
 
-    print(sum(all(induced_subgraph_isomorphism(P, T) for P in patterns[nP]) for T in read_all_graphs(nT)))
+    patterns.sort(key=lambda G: -len(induced_subgraph_isomorphism(G, G, True)))
+    #patterns.sort(key=lambda G: -abs(sum(sum(row) for row in G._adj_mat) - G.number_of_nodes() * (G.number_of_nodes() - 1) / 2))
+
+    print(sum(all(induced_subgraph_isomorphism(P, T) for P in patterns) for T in read_all_graphs(nT)))

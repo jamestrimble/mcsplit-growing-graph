@@ -1,9 +1,9 @@
-1 1
-2 2
-2 3
-3 4
-3 5
-4 7
-4 8
-5 9
-5 10
+graph 1 1
+graph 2 2
+graph 2 3
+graph 3 4
+graph 3 5
+graph 4 7
+graph 4 8
+graph 5 9
+graph 5 10
