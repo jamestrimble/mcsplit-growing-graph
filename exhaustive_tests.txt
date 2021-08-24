@@ -7,3 +7,14 @@ graph 4 7
 graph 4 8
 graph 5 9
 graph 5 10
+tree 1 1
+tree 2 1
+tree 2 2
+tree 3 2
+tree 3 3
+tree 4 4
+tree 4 5
+tree 5 6
+tree 5 7
+tree 6 8
+tree 6 9
